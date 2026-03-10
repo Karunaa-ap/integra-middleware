@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -116,7 +116,7 @@
   <!-- PAGE 1: UPLOAD -->
   <div class="page active" id="page1">
     <h2>Upload SolidWorks BOM</h2>
-    <p class="sub">// Drop your SolidWorks BOM export (.xlsx) </p>
+    <p class="sub">// Drop your SolidWorks BOM export (.xlsx) — no template needed</p>
     <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
       <input type="file" id="fileInput" accept=".xlsx">
       <div class="upload-icon">⬆</div>
@@ -149,7 +149,7 @@
       <table>
         <thead><tr>
           <th>Part</th><th>Description</th><th>Material</th><th>Thick</th>
-          <th>Outer (mm)</th><th>Inner (mm)</th><th>Speed (mm/s)</th><th>Labor Time</th>
+          <th>X (mm)</th><th>Y (mm)</th><th>Outer (mm)</th><th>Inner (mm)</th><th>Speed (mm/s)</th><th>Labor Time</th>
         </tr></thead>
         <tbody id="laserBody"></tbody>
       </table>
@@ -306,6 +306,8 @@ function buildLaborPage(data) {
       <td class="desc">${p.desc}</td>
       <td class="mat">${p.mat||'—'}</td>
       <td class="mat">${p.thick||'—'}</td>
+      <td class="mat">${p.x ? p.x.toFixed(1) : '—'}</td>
+      <td class="mat">${p.y ? p.y.toFixed(1) : '—'}</td>
       <td class="mat">${p.outer ? p.outer.toFixed(1) : '—'}</td>
       <td class="mat">${p.inner ? p.inner.toFixed(1) : '—'}</td>
       <td>
