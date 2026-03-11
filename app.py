@@ -1,7 +1,39 @@
 from flask import Flask, request, jsonify, send_file, render_template
 import openpyxl
 from openpyxl import Workbook
-import os, io, math
+import os, io, math, requests
+
+FULCRUM_API_KEY = os.environ.get('FULCRUM_API_KEY', '')
+FULCRUM_BASE = 'https://integrasystems.fulcrumpro.com/api'
+
+def fulcrum_headers():
+    return {'Authorization': f'Bearer {FULCRUM_API_KEY}', 'Content-Type': 'application/json'}
+
+def get_existing_item(part_number):
+    """Returns (fulcrum_id, existing_routing_ops) or (None, []) if not found."""
+    if not FULCRUM_API_KEY:
+        return None, []
+    try:
+        r = requests.post(f'{FULCRUM_BASE}/items/list',
+            headers=fulcrum_headers(),
+            json={'filters': [{'field': 'number', 'operator': 'eq', 'value': part_number}], 'pageSize': 1},
+            timeout=5)
+        if r.status_code == 200:
+            data = r.json()
+            items = data.get('items', data.get('data', []))
+            if items:
+                item = items[0]
+                item_id = item.get('id') or item.get('itemId')
+                r2 = requests.get(f'{FULCRUM_BASE}/items/{item_id}', headers=fulcrum_headers(), timeout=5)
+                if r2.status_code == 200:
+                    full = r2.json()
+                    routing = full.get('routing', [])
+                    ops = [op.get('operation', '') for op in routing]
+                    return item_id, ops
+                return item_id, []
+    except Exception as e:
+        print(f'Fulcrum API error for {part_number}: {e}')
+    return None, []
 
 SPEED_TABLE = {
     'steel': {0.5:125,0.75:125,0.9:125,1.0:125,1.1:125,1.2:125,1.5:125,1.6:125,2.0:90,2.5:32,3.0:32,4.0:25,5.0:21,6.0:18,8.0:14,10.0:11},
@@ -29,7 +61,6 @@ PC_COLOURS = [
     'PC-Trim Black replacement'
 ]
 
-# Map colour name from SolidWorks BOM → PC item name
 COLOUR_MAP = {c.lower().replace('pc-','').replace('pc- ','').strip(): c for c in PC_COLOURS}
 
 def match_colour(raw_colour):
@@ -135,12 +166,11 @@ def parse_bom(file_bytes):
     pending_pn = None
 
     for i, row in enumerate(rows):
-        if i == 0: continue  # skip header
+        if i == 0: continue
 
         pn_raw = row[1]
         pn = str(pn_raw).strip() if pn_raw else ''
 
-        # Sheet row (no part number, has X/Y data)
         if not pn and pending_pn and row[14] is not None:
             x, y = row[14], row[15]
             bends = float(row[16]) if is_numeric(row[16]) else None
@@ -151,7 +181,6 @@ def parse_bom(file_bytes):
             labor[pending_pn]['bends'] = bends
             labor[pending_pn]['outer'] = outer
             labor[pending_pn]['inner'] = inner
-            # auto speed
             p = next((p for p in parts if p['pn'] == pending_pn), None)
             if p and not labor[pending_pn]['speed']:
                 labor[pending_pn]['speed'] = get_cutting_speed(p['mat'], p['thick'])
@@ -169,16 +198,13 @@ def parse_bom(file_bytes):
         try: qty = int(float(str(row[13]))) if row[13] else 1
         except: qty = 1
 
-        # Parse processes from columns 7-12
         procs = []
         for col in range(7, 13):
             op = norm_proc(row[col])
             if op and op not in procs:
                 procs.append(op)
 
-        # Indent from item_no dots e.g. "1.2.3" = indent 2
         indent = item_no.count('.')
-
         has_procs = bool(procs)
         is_make = has_procs or (mat and not is_junk_mat(mat))
 
@@ -256,7 +282,6 @@ def upload():
     f = request.files['file']
     filename = f.filename
     file_bytes = f.read()
-    # Extract assembly number from filename e.g. A-3686_R3.xlsx → A-3686
     top = filename.split('_')[0].strip()
 
     try:
@@ -309,26 +334,26 @@ def download(step, session_id):
     parts = sess['parts']; labor = sess['labor']; top = sess['top']
     seen, bom_rows = build_hierarchy(parts, top)
 
-    # Collect unique PC colours used
     used_colours = set()
     for p in parts:
         if 'Powder Coating' in p['processes'] and p['colour']:
             used_colours.add(p['colour'])
 
-    # Build items
+    # Build items - skip parts that already exist in Fulcrum
     item_data = [ITEM_COLS, irow(top, top+' Assembly', 'Make')]
     done = {top}
     for pn, p in seen.items():
         if pn in done: continue
         done.add(pn)
+        existing_id, _ = get_existing_item(pn)
+        if existing_id:
+            continue  # already exists in Fulcrum, skip
         item_data.append(irow(pn, p['desc'], p['origin'], p['mat'], p['thick']))
-    # Add PC colour items
     for pc in sorted(used_colours):
         item_data.append(pc_irow(pc))
 
     # Build BOM
     bom_data = [BOM_H] + [[r['parent'],'',r['child'],'',r['qty']] for r in bom_rows]
-    # Add PC colour as child of parts that use powder coating
     for p in parts:
         if 'Powder Coating' in p['processes'] and p['colour']:
             x = labor[p['pn']]['x']; y = labor[p['pn']]['y']
@@ -336,11 +361,15 @@ def download(step, session_id):
             if powder_kg:
                 bom_data.append([p['pn'], '', p['colour'], '', powder_kg])
 
-    # Build Routing
+    # Build Routing - skip ops that already exist in Fulcrum
     rout_data = [ROUT_H]
     for pn, p in seen.items():
         if p['origin'] == 'Buy' or not p['processes']: continue
+        _, existing_ops = get_existing_item(pn)
+        existing_ops_lower = [o.lower() for o in existing_ops]
         for i, op in enumerate(p['processes']):
+            if op.lower() in existing_ops_lower:
+                continue  # skip - already exists in Fulcrum
             lt = calc_labor(pn, op, labor)
             rout_data.append([
                 pn, '', op, (i+1)*10, '', '',
