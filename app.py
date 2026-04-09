@@ -34,9 +34,7 @@ def build_item_id_cache(top_assembly_id):
         if r.status_code == 200:
             data = r.json()
             cache = {}
-            # Add the assembly itself
             cache[data.get('number','').upper()] = (data.get('id'), [])
-            # Add all child parts from routing inputItems
             routing = data.get('routing', {})
             input_items = routing.get('inputItems', [])
             for item in input_items:
@@ -53,7 +51,6 @@ def build_item_id_cache(top_assembly_id):
 
 
 def extract_attachments_from_zip(zip_bytes):
-    """Extract PDFs and SLDPRTs from SolidWorks zip, return {part_number: [filename, bytes]}"""
     attachments = {}
     try:
         with zipfile.ZipFile(io.BytesIO(zip_bytes)) as z:
@@ -64,8 +61,6 @@ def extract_attachments_from_zip(zip_bytes):
                 if ext not in ['.pdf', '.sldprt', '.sldasm', '.step', '.stp']:
                     continue
                 stem = os.path.splitext(basename)[0].upper()
-                # Strip revision suffix - revisions are trailing -00 to -99 or -R01 etc
-                # P-1234-07 → P-1234, A-0406-00 → A-0406, P-2575-R02 → P-2575
                 pn = re.sub(r'-[Rr]?[0-9]{1,2}$', '', stem)
                 if pn not in attachments:
                     attachments[pn] = []
@@ -75,7 +70,6 @@ def extract_attachments_from_zip(zip_bytes):
     return attachments
 
 def find_xlsx_in_zip(zip_bytes):
-    """Find and return the BOM xlsx from inside the zip"""
     try:
         with zipfile.ZipFile(io.BytesIO(zip_bytes)) as z:
             for name in z.namelist():
@@ -87,13 +81,11 @@ def find_xlsx_in_zip(zip_bytes):
     return None, None
 
 def build_attachment_zip(assembly_number, attachments, parts):
-    """Build a zip in SolidWorks format with all matched attachments"""
     buf = io.BytesIO()
     part_numbers = set(p['pn'].upper() for p in parts)
     part_numbers.add(assembly_number.upper())
     with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as z:
         for pn, files in attachments.items():
-            # Include if part number matches any part in BOM
             if any(pn.startswith(p) or p.startswith(pn) or pn == p for p in part_numbers):
                 for filename, data in files:
                     z.writestr(f'{assembly_number}/{filename}', data)
@@ -349,7 +341,6 @@ def upload():
     filename = f.filename
     file_bytes = f.read()
 
-    # Handle zip file upload
     attachments = {}
     if filename.lower().endswith('.zip'):
         attachments = extract_attachments_from_zip(file_bytes)
@@ -429,7 +420,7 @@ def download(step, session_id):
         if 'Powder Coating' in p['processes'] and p['colour']:
             used_colours.add(p['colour'])
 
-    # Build items - skip parts that already exist in Fulcrum
+    # Build items
     item_data = [ITEM_COLS, irow(top, top+' Assembly', 'Make')]
     done = {top}
     for pn, p in seen.items():
@@ -437,13 +428,23 @@ def download(step, session_id):
         done.add(pn)
         existing_id, _ = get_existing_item(pn)
         if existing_id:
-            continue  # already exists in Fulcrum, skip
+            continue
         item_data.append(irow(pn, p['desc'], p['origin'], p['mat'], p['thick']))
     for pc in sorted(used_colours):
         item_data.append(pc_irow(pc))
 
     # Build BOM
-    bom_data = [BOM_H] + [[r['parent'],'',r['child'],'',r['qty'],'','','',''] for r in bom_rows]
+    part_procs = {p['pn']: p['processes'] for p in parts}
+    bom_data = [BOM_H]
+    for r in bom_rows:
+        child_p = seen.get(r['child'])
+        parent_procs = part_procs.get(r['parent'], [])
+        child_origin = child_p['origin'] if child_p else 'Buy'
+        routing_op = ''
+        if child_origin == 'Buy' and 'Clinching' in parent_procs:
+            routing_op = 'Clinching'
+        bom_data.append([r['parent'],'',r['child'],'',r['qty'],'','','',routing_op])
+
     for p in parts:
         if 'Powder Coating' in p['processes'] and p['colour']:
             x = labor[p['pn']]['x']; y = labor[p['pn']]['y']
@@ -451,7 +452,7 @@ def download(step, session_id):
             if powder_kg:
                 bom_data.append([p['pn'], '', p['colour'], '', powder_kg, '', '', '', 'Powder Coating'])
 
-    # Build Routing - skip ops that already exist in Fulcrum
+    # Build Routing
     rout_data = [ROUT_H]
     for pn, p in seen.items():
         if p['origin'] == 'Buy' or not p['processes']: continue
@@ -459,10 +460,10 @@ def download(step, session_id):
         existing_ops_lower = [o.lower() for o in existing_ops]
         for i, op in enumerate(p['processes']):
             if op.lower() in existing_ops_lower:
-                continue  # skip - already exists in Fulcrum
+                continue
             lt = calc_labor(pn, op, labor)
             rout_data.append([
-                pn, '', op, (i+1)*10, '', '',
+                pn, '', op, i+1, '', '',
                 'Fixed', SETUP_SECS, 'Second',
                 'Fixed', lt if lt else '', 'Second' if lt else '',
                 '', 'Fixed', '', '', '', '', '', ''
@@ -496,7 +497,6 @@ def auto_attach(session_id):
     if not attachments:
         return jsonify({'error': 'No attachments found in uploaded zip'}), 400
 
-    # Get assembly Fulcrum ID from request body
     data = request.get_json(silent=True) or {}
     assembly_fulcrum_id = data.get('assembly_id', '')
     if assembly_fulcrum_id:
@@ -509,9 +509,8 @@ def auto_attach(session_id):
     attached = skipped = failed = 0
 
     for pn, files in attachments.items():
-        # Find matching part number
         matched_pn = None
-        for p in sorted(part_numbers, key=len, reverse=True):  # longest match first
+        for p in sorted(part_numbers, key=len, reverse=True):
             if pn == p or pn.startswith(p) or p.startswith(pn):
                 matched_pn = p
                 break
@@ -519,7 +518,6 @@ def auto_attach(session_id):
             print(f'No match for {pn} in {part_numbers}')
             continue
 
-        # Get Fulcrum item ID
         item_id, _ = get_existing_item(matched_pn)
         if not item_id:
             for filename, _ in files:
@@ -529,7 +527,6 @@ def auto_attach(session_id):
 
         for filename, file_bytes in files:
             try:
-                # Use correct Fulcrum attachments API: POST /api/attachments (multipart)
                 ext = os.path.splitext(filename)[1].lower()
                 mime = 'application/pdf' if ext == '.pdf' else 'application/octet-stream'
                 upload_resp = requests.post(
