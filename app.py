@@ -214,10 +214,27 @@ def norm_proc(raw):
     s = str(raw).strip().lstrip('-').strip().lower().replace('\n',' ').replace('\r',' ').replace('  ',' ')
     return FULCRUM_OP_MAP.get(s)
 
+def find_col(header_row, *names):
+    for i, val in enumerate(header_row):
+        if val is None: continue
+        v = str(val).strip().lower().replace('\n',' ').replace('  ',' ')
+        for name in names:
+            if name.lower() in v:
+                return i
+    return None
+
 def parse_bom(file_bytes):
     wb = openpyxl.load_workbook(io.BytesIO(file_bytes))
     ws = wb.active
     rows = list(ws.iter_rows(values_only=True))
+
+    # Detect columns by header name
+    header = rows[0]
+    col_x     = find_col(header, 'x') or 14
+    col_y     = find_col(header, 'y') or 15
+    col_bends = find_col(header, 'bend') or 16
+    col_outer = find_col(header, 'outer') or 17
+    col_inner = find_col(header, 'inner') or 18
 
     parts = []
     labor = {}
@@ -229,11 +246,14 @@ def parse_bom(file_bytes):
         pn_raw = row[1]
         pn = str(pn_raw).strip() if pn_raw else ''
 
-        if not pn and pending_pn and row[14] is not None:
-            x, y = row[14], row[15]
-            bends = float(row[16]) if is_numeric(row[16]) else None
-            outer = float(row[17]) if is_numeric(row[17]) else None
-            inner = float(row[18]) if is_numeric(row[18]) else None
+        if not pn and pending_pn:
+            x_val = row[col_x] if col_x < len(row) else None
+            if x_val is not None:
+                x = x_val
+                y = row[col_y] if col_y < len(row) else None
+                bends = float(row[col_bends]) if col_bends < len(row) and is_numeric(row[col_bends]) else None
+                outer = float(row[col_outer]) if col_outer < len(row) and is_numeric(row[col_outer]) else None
+                inner = float(row[col_inner]) if col_inner < len(row) and is_numeric(row[col_inner]) else None
             labor[pending_pn]['x'] = x
             labor[pending_pn]['y'] = y
             labor[pending_pn]['bends'] = bends

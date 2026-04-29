@@ -17,22 +17,16 @@
   .main{padding:40px 32px;max-width:1200px;margin:0 auto}
   h2{font-size:22px;font-weight:600;margin-bottom:6px}
   .sub{color:#666;font-size:13px;font-family:'IBM Plex Mono',monospace;margin-bottom:24px}
-
-  /* Upload */
   .upload-zone{border:2px dashed #2a2a2a;border-radius:8px;padding:60px;text-align:center;cursor:pointer;transition:all .2s;background:#111}
   .upload-zone:hover,.upload-zone.drag{border-color:#4a9eff;background:#111d2a}
   .upload-zone input{display:none}
   .upload-icon{font-size:40px;margin-bottom:12px}
   .upload-zone p{color:#666;font-size:14px}
   .upload-zone .hint{font-size:12px;color:#444;margin-top:6px;font-family:'IBM Plex Mono',monospace}
-
-  /* Info box */
   .info-box{background:#111;border:1px solid #1e1e1e;border-left:3px solid #4a9eff;border-radius:4px;padding:14px 18px;margin-bottom:24px;font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.8;color:#888}
   .info-box .hl{color:#4a9eff;font-weight:600}
   .info-box .hl2{color:#56d364;font-weight:600}
   .info-box .hl3{color:#f0a030;font-weight:600}
-
-  /* Stats bar */
   .stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:28px}
   .stat{background:#111;border:1px solid #1e1e1e;border-radius:6px;padding:10px 18px;font-size:13px;display:flex;align-items:center;gap:8px}
   .stat-num{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;color:#fff}
@@ -41,8 +35,6 @@
   .stat-num.orange{color:#f0a030}
   .stat-num.purple{color:#b47eff}
   .stat-label{color:#666;font-size:12px}
-
-  /* Section */
   .section{margin-bottom:32px}
   .section-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #1a1a1a}
   .section-title{font-size:14px;font-weight:600;letter-spacing:1px;text-transform:uppercase;font-family:'IBM Plex Mono',monospace}
@@ -51,8 +43,6 @@
   .section-title.panel{color:#f0a030}
   .section-title.powder{color:#b47eff}
   .section-count{font-size:11px;color:#444;font-family:'IBM Plex Mono',monospace}
-
-  /* Table */
   table{width:100%;border-collapse:collapse;font-size:13px}
   th{text-align:left;padding:8px 10px;color:#444;font-size:11px;letter-spacing:1px;text-transform:uppercase;font-family:'IBM Plex Mono',monospace;border-bottom:1px solid #1a1a1a}
   td{padding:8px 10px;border-bottom:1px solid #141414;vertical-align:middle}
@@ -62,25 +52,17 @@
   .mat{color:#666;font-size:11px;font-family:'IBM Plex Mono',monospace}
   .calc{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#56d364}
   .calc.none{color:#444}
-
-  /* Editable input */
   .edit-input{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:4px;color:#fff;padding:4px 8px;font-family:'IBM Plex Mono',monospace;font-size:12px;width:80px;transition:border .2s}
   .edit-input:focus{outline:none;border-color:#4a9eff}
   .edit-input.auto{border-color:#1a3a1a;background:#0d150d;color:#56d364}
   .auto-tag{font-size:9px;color:#56d364;letter-spacing:1px;margin-left:4px;opacity:.7}
-
-  /* Colour badge */
   .colour-badge{background:#1a1020;border:1px solid #2a1a3a;border-radius:4px;padding:3px 8px;font-size:11px;color:#b47eff;font-family:'IBM Plex Mono',monospace}
-
-  /* Buttons */
   .btn{padding:10px 24px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:500;transition:all .2s;font-family:'IBM Plex Sans',sans-serif}
   .btn-primary{background:#4a9eff;color:#000}
   .btn-primary:hover{background:#6ab0ff}
   .btn-secondary{background:#1a1a1a;color:#888;border:1px solid #2a2a2a}
   .btn-secondary:hover{background:#222;color:#fff}
   .btn-row{display:flex;gap:12px;align-items:center;margin-top:24px}
-
-  /* Download */
   .download-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px}
   .dl-card{background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:24px;transition:border .2s}
   .dl-card:hover{border-color:#4a9eff}
@@ -89,12 +71,8 @@
   .dl-card .btn{width:100%}
   .step1-card h3{color:#56d364}
   .step2-card h3{color:#4a9eff}
-
-  /* Page visibility */
   .page{display:none}
   .page.active{display:block}
-
-  /* Loading */
   .spinner{display:inline-block;width:14px;height:14px;border:2px solid #333;border-top-color:#4a9eff;border-radius:50%;animation:spin .6s linear infinite;margin-right:8px;vertical-align:middle}
   @keyframes spin{to{transform:rotate(360deg)}}
 </style>
@@ -117,10 +95,10 @@
     <h2>Upload SolidWorks BOM</h2>
     <p class="sub">// Drop your SolidWorks BOM export (.xlsx) or zip file</p>
     <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
-     <input type="file" id="fileInput" accept=".xlsx,.zip">
+      <input type="file" id="fileInput" accept=".xlsx,.zip">
       <div class="upload-icon">⬆</div>
       <p>Click or drag & drop your BOM file</p>
-     <p class="hint">Accepts SolidWorks BOM export (.xlsx or .zip)</p>
+      <p class="hint">Accepts SolidWorks BOM export (.xlsx or .zip)</p>
     </div>
     <div id="uploadStatus" style="margin-top:16px;font-family:'IBM Plex Mono',monospace;font-size:13px;color:#666"></div>
   </div>
@@ -139,7 +117,6 @@
 
     <div class="stats" id="statsBar"></div>
 
-    <!-- Laser Table -->
     <div class="section" id="laserSection">
       <div class="section-header">
         <span class="section-title laser">⚡ Laser Cutting</span>
@@ -154,7 +131,6 @@
       </table>
     </div>
 
-    <!-- Press Brake Table -->
     <div class="section" id="pressSection">
       <div class="section-header">
         <span class="section-title press">⚙ Press Brake Bending</span>
@@ -169,7 +145,6 @@
       </table>
     </div>
 
-    <!-- Panel Bending Table -->
     <div class="section" id="panelSection">
       <div class="section-header">
         <span class="section-title panel">◈ Panel Bending</span>
@@ -184,7 +159,6 @@
       </table>
     </div>
 
-    <!-- Powder Coating Table -->
     <div class="section" id="powderSection">
       <div class="section-header">
         <span class="section-title powder">◉ Powder Coating</span>
@@ -201,7 +175,7 @@
 
     <div class="btn-row">
       <button class="btn btn-secondary" onclick="showPage(1)">← Back</button>
-      <button class="btn btn-primary" onclick="showPage(3)">Generate Files →</button>
+      <button class="btn btn-primary" onclick="reviewAndGenerate()">Generate Files →</button>
     </div>
   </div>
 
@@ -252,7 +226,6 @@ function fmtKg(kg) {
   return `<span class="calc">${kg} kg</span>`;
 }
 
-// Upload
 const dz = document.getElementById('dropZone');
 const fi = document.getElementById('fileInput');
 dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
@@ -278,10 +251,13 @@ function handleFile(file) {
     .catch(e => status.innerHTML = '❌ Upload failed: ' + e);
 }
 
+function reviewAndGenerate() {
+  alert('NOTICE BEFORE GENERATING FILE\n\nPlease ensure all sheet metal parts have been reviewed and the correct number of Press Brake bends and Panel Bending bends have been entered before proceeding.\n\nThis information is required for accurate routing, labour allocation, and production planning.');
+  showPage(3);
+}
 function buildLaborPage(data) {
   document.getElementById('laborSub').textContent = `// ${data.top} — ${data.total} total parts`;
 
-  // Stats
   const sb = document.getElementById('statsBar');
   sb.innerHTML = `
     <div class="stat"><span class="stat-num">${data.total}</span><span class="stat-label">Total Parts</span></div>
@@ -291,7 +267,6 @@ function buildLaborPage(data) {
     <div class="stat"><span class="stat-num purple">${data.powder.length}</span><span class="stat-label">Powder Coat</span></div>
     <div class="stat"><span class="stat-num">600s</span><span class="stat-label">Setup all ops</span></div>`;
 
-  // Laser
   document.getElementById('laserCount').textContent = `${data.laser.length} parts`;
   document.getElementById('laserSection').style.display = data.laser.length ? '' : 'none';
   const lb = document.getElementById('laserBody');
@@ -310,7 +285,7 @@ function buildLaborPage(data) {
       <td class="mat">${p.outer ? p.outer.toFixed(1) : '—'}</td>
       <td class="mat">${p.inner ? p.inner.toFixed(1) : '—'}</td>
       <td>
-        <input class="edit-input ${isAuto?'auto':''}" type="number" value="${p.speed||''}" 
+        <input class="edit-input ${isAuto?'auto':''}" type="number" value="${p.speed||''}"
                placeholder="mm/s" data-pn="${p.pn}" data-field="speed" onchange="updateLabor(this)">
         ${isAuto?'<span class="auto-tag">AUTO</span>':''}
       </td>
@@ -318,17 +293,14 @@ function buildLaborPage(data) {
     lb.appendChild(tr);
   });
 
-  // Press
   document.getElementById('pressCount').textContent = `${data.press.length} parts`;
   document.getElementById('pressSection').style.display = data.press.length ? '' : 'none';
-  buildBendTable('pressBody', data.press, 'Press Brake Bending');
+  buildBendTable('pressBody', data.press);
 
-  // Panel
   document.getElementById('panelCount').textContent = `${data.panel.length} parts`;
   document.getElementById('panelSection').style.display = data.panel.length ? '' : 'none';
-  buildBendTable('panelBody', data.panel, 'Panel Bending');
+  buildBendTable('panelBody', data.panel);
 
-  // Powder
   document.getElementById('powderCount').textContent = `${data.powder.length} parts`;
   document.getElementById('powderSection').style.display = data.powder.length ? '' : 'none';
   const pb = document.getElementById('powderBody');
@@ -349,13 +321,12 @@ function buildLaborPage(data) {
     pb.appendChild(tr);
   });
 
-  // Download buttons
   document.getElementById('dl1Btn').onclick = () => window.location = `/download/1/${sessionId}`;
   document.getElementById('dl2Btn').onclick = () => window.location = `/download/2/${sessionId}`;
   document.getElementById('dlSub').textContent = `// ${data.top} — ready to import`;
 }
 
-function buildBendTable(bodyId, parts, op) {
+function buildBendTable(bodyId, parts) {
   const tb = document.getElementById(bodyId);
   tb.innerHTML = '';
   parts.forEach(p => {
@@ -366,9 +337,9 @@ function buildBendTable(bodyId, parts, op) {
       <td class="desc">${p.desc}</td>
       <td class="mat">${p.mat||'—'}</td>
       <td class="mat">${p.thick||'—'}</td>
-      <td><input class="edit-input auto" type="number" value="${p.bends||''}" 
+      <td><input class="edit-input auto" type="number" value="${p.bends||''}"
                  data-pn="${p.pn}" data-field="bends" onchange="updateLabor(this)"></td>
-      <td><input class="edit-input" type="number" value="${p.spb||30}" 
+      <td><input class="edit-input" type="number" value="${p.spb||30}"
                  data-pn="${p.pn}" data-field="spb" onchange="updateLabor(this)"></td>
       <td id="lt_bend_${p.pn}">${fmtTime(lt)}</td>`;
     tb.appendChild(tr);
@@ -391,6 +362,18 @@ function updateLabor(input) {
   const pn = input.dataset.pn;
   const field = input.dataset.field;
   const value = input.value;
+
+  const bendEl = document.getElementById(`lt_bend_${pn}`);
+  if (bendEl) {
+    const bendsInput = document.querySelector(`input[data-pn="${pn}"][data-field="bends"]`);
+    const spbInput = document.querySelector(`input[data-pn="${pn}"][data-field="spb"]`);
+    if (bendsInput && spbInput) {
+      const bends = parseFloat(bendsInput.value) || 0;
+      const spb = parseFloat(spbInput.value) || 30;
+      bendEl.innerHTML = fmtTime(bends > 0 ? Math.ceil(bends * spb) : null);
+    }
+  }
+
   fetch('/update_labor', {
     method:'POST',
     headers:{'Content-Type':'application/json'},
@@ -399,8 +382,8 @@ function updateLabor(input) {
   .then(r => r.json())
   .then(data => {
     Object.entries(data.labor).forEach(([op, secs]) => {
-      const el = document.getElementById(`lt_laser_${pn}`) || document.getElementById(`lt_bend_${pn}`);
-      if (el) el.innerHTML = fmtTime(secs);
+      const laserEl = document.getElementById(`lt_laser_${pn}`);
+      if (laserEl && secs !== null) laserEl.innerHTML = fmtTime(secs);
     });
   });
 }
