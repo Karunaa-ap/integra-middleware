@@ -259,7 +259,7 @@ def parse_bom(file_bytes):
         pn_raw = row[1]
         pn = str(pn_raw).strip() if pn_raw else ''
 
-if not pn and pending_pn:
+        if not pn and pending_pn:
             x_val = row[col_x] if col_x < len(row) else None
             if x_val is not None:
                 x = x_val
