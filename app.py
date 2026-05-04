@@ -219,8 +219,14 @@ def find_col(header_row, *names):
         if val is None: continue
         v = str(val).strip().lower().replace('\n',' ').replace('  ',' ')
         for name in names:
-            if name.lower() in v:
-                return i
+            n = name.lower()
+            # Exact match for short names, partial for longer ones
+            if len(n) <= 2:
+                if v == n:
+                    return i
+            else:
+                if n in v:
+                    return i
     return None
 
 def parse_bom(file_bytes):
