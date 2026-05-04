@@ -156,11 +156,18 @@ DEF_SPB = 30
 
 FULCRUM_OP_MAP = {
     'laser cutting':'Laser Cutting','lasercut':'Laser Cutting','laser cut':'Laser Cutting',
+    '- lasercut':'Laser Cutting','- laser cut':'Laser Cutting','- laser cutting':'Laser Cutting',
     'press brake bending':'Press Brake Bending','press brake':'Press Brake Bending',
-    'panel bending':'Panel Bending',
-    'laser welding':'Laser Welding',
+    '- press brake':'Press Brake Bending','- press brake bending':'Press Brake Bending',
+    'panel bending':'Panel Bending','panel fold':'Panel Bending',
+    'p2 panel fold':'Panel Bending','- panel bending':'Panel Bending','- panel fold':'Panel Bending',
+    'laser welding':'Laser Welding','weld':'Laser Welding','- weld':'Laser Welding',
     'powdercoating':'Powder Coating','powder coating':'Powder Coating','powdercoat':'Powder Coating',
-    'assembly':'Assembly','clinching':'Clinching','3d printing':'3D Printing',
+    '- powdercoat':'Powder Coating','- powder coating':'Powder Coating','- powdercoating':'Powder Coating',
+    'assembly':'Assembly','- assembly':'Assembly',
+    'clinching':'Clinching','- clinching':'Clinching',
+    '3d printing':'3D Printing',
+    'hardware insertion':'Assembly','- hardware insertion':'Assembly',
     'outside processing':'Outsourced Fabrication','outsourced fabrication':'Outsourced Fabrication',
 }
 
@@ -252,7 +259,7 @@ def parse_bom(file_bytes):
         pn_raw = row[1]
         pn = str(pn_raw).strip() if pn_raw else ''
 
-        if not pn and pending_pn:
+if not pn and pending_pn:
             x_val = row[col_x] if col_x < len(row) else None
             if x_val is not None:
                 x = x_val
@@ -260,11 +267,11 @@ def parse_bom(file_bytes):
                 bends = float(row[col_bends]) if col_bends < len(row) and is_numeric(row[col_bends]) else None
                 outer = float(row[col_outer]) if col_outer < len(row) and is_numeric(row[col_outer]) else None
                 inner = float(row[col_inner]) if col_inner < len(row) and is_numeric(row[col_inner]) else None
-            labor[pending_pn]['x'] = x
-            labor[pending_pn]['y'] = y
-            labor[pending_pn]['bends'] = bends
-            labor[pending_pn]['outer'] = outer
-            labor[pending_pn]['inner'] = inner
+                labor[pending_pn]['x'] = x
+                labor[pending_pn]['y'] = y
+                labor[pending_pn]['bends'] = bends
+                labor[pending_pn]['outer'] = outer
+                labor[pending_pn]['inner'] = inner
             p = next((p for p in parts if p['pn'] == pending_pn), None)
             if p and not labor[pending_pn]['speed']:
                 labor[pending_pn]['speed'] = get_cutting_speed(p['mat'], p['thick'])
